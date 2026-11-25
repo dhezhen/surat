@@ -56,6 +56,14 @@ class User extends Authenticatable
         return $this->signature_path && Storage::disk('public')->exists($this->signature_path);
     }
 
+    /** Gambar tanda tangan ditanam langsung di halaman agar tidak perlu URL publik (storage:link). */
+    public function tandaTanganDataUri(): ?string
+    {
+        return $this->punyaTandaTangan()
+            ? 'data:image/png;base64,'.base64_encode(Storage::disk('public')->get($this->signature_path))
+            : null;
+    }
+
     public function labelRole(): string
     {
         return self::PERAN[$this->role] ?? $this->role;

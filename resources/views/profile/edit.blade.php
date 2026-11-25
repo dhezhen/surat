@@ -37,7 +37,11 @@
 
                 @if ($user->signature_path)
                     <div class="mt-4 flex flex-wrap items-center gap-4">
-                        <img src="{{ Storage::disk('public')->url($user->signature_path) }}?v={{ $user->updated_at->timestamp }}" alt="Tanda tangan tersimpan" class="tema-terang h-20 max-w-xs rounded border border-slate-200 bg-white p-2">
+                        @if ($gambar = $user->tandaTanganDataUri())
+                            <img src="{{ $gambar }}" alt="Tanda tangan tersimpan" class="tema-terang h-20 max-w-xs rounded border border-slate-200 bg-white p-2">
+                        @else
+                            <p class="text-sm text-red-700">Berkas tanda tangan tidak ditemukan di server. Unggah ulang di bawah.</p>
+                        @endif
                         <form method="post" action="{{ route('profile.tanda-tangan.hapus') }}" onsubmit="return confirm('Hapus tanda tangan tersimpan?')">
                             @csrf @method('delete')
                             <button class="text-sm text-red-700 underline">Hapus tanda tangan</button>

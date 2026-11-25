@@ -12,7 +12,6 @@ use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -41,8 +40,7 @@ class PengaturanSuratController extends Controller
             'logoKop' => LogoService::dataUri(),
             'penandatangan' => User::where('role', User::ROLE_KAPRODI)->aktif()->orderBy('name')->get()->map(fn (User $u) => [
                 'user' => $u,
-                // Data URI agar pratinjau tidak bergantung pada APP_URL.
-                'gambar' => $u->punyaTandaTangan() ? 'data:image/png;base64,'.base64_encode(Storage::disk('public')->get($u->signature_path)) : null,
+                'gambar' => $u->tandaTanganDataUri(),
             ]),
         ]);
     }

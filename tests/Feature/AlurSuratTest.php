@@ -124,6 +124,24 @@ class AlurSuratTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_tanda_tangan_di_profil_tampil_tanpa_url_publik(): void
+    {
+        Storage::fake('public');
+        $file = UploadedFile::fake()->createWithContent('ttd.png', $this->gambarTandaTangan());
+        $this->actingAs($this->kaprodi)->post(route('profile.tanda-tangan'), ['tanda_tangan' => $file]);
+        $path = $this->kaprodi->fresh()->signature_path;
+
+        $this->actingAs($this->kaprodi->fresh())->get(route('profile.edit'))->assertOk()
+            ->assertSee('src="data:image/png;base64,'.base64_encode(Storage::disk('public')->get($path)).'"', false)
+            ->assertDontSee($path, false);
+
+        // Berkas hilang (mis. database dipindah tanpa folder storage) diberi keterangan, bukan gambar rusak.
+        Storage::disk('public')->delete($path);
+        $this->actingAs($this->kaprodi->fresh())->get(route('profile.edit'))->assertOk()
+            ->assertSee('Berkas tanda tangan tidak ditemukan')
+            ->assertDontSee('alt="Tanda tangan tersimpan"', false);
+    }
+
     public function test_tanda_tangan_digambar_di_layar_dan_tampil_di_pdf(): void
     {
         Storage::fake('public');
