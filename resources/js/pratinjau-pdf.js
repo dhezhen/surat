@@ -26,7 +26,7 @@ async function tampilkan(wadah) {
             const kanvas = document.createElement('canvas');
             kanvas.width = Math.floor(viewport.width);
             kanvas.height = Math.floor(viewport.height);
-            kanvas.className = 'block w-full border border-slate-300 bg-white';
+            kanvas.className = 'tema-terang block w-full border border-slate-300 bg-white';
             kanvas.setAttribute('role', 'img');
             kanvas.setAttribute('aria-label', `Halaman ${n} dari ${pdf.numPages}`);
             daftar.appendChild(kanvas);

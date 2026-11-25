@@ -14,6 +14,7 @@
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
     </button>
     <a href="{{ route('dashboard') }}" class="font-serif text-lg font-bold text-indigo-900">{{ $identitas['nama_aplikasi'] }}</a>
+    <x-tombol-tema ringkas />
 </div>
 
 <div x-show="sidebar" x-cloak x-transition.opacity class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" @click="sidebar = false" aria-hidden="true"></div>
@@ -24,7 +25,7 @@
 
     <div class="flex items-start justify-between px-2 pb-4 pt-1">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 rounded">
-            <img src="{{ \App\Services\LogoService::url() }}" alt="Logo {{ $identitas['nama_unit'] }}" class="h-8 w-8 shrink-0 rounded-md bg-white object-contain p-0.5">
+            <img src="{{ \App\Services\LogoService::url() }}" alt="Logo {{ $identitas['nama_unit'] }}" class="tema-terang h-8 w-8 shrink-0 rounded-md bg-white object-contain p-0.5">
             <span class="min-w-0">
                 <span class="block break-words font-serif text-2xl font-bold leading-none text-indigo-900">{{ $identitas['nama_aplikasi'] }}</span>
                 <span class="mt-1.5 block text-xs leading-snug text-slate-600">Persuratan &amp; Arsip<br>{{ $identitas['nama_unit'] }}</span>
@@ -104,6 +105,7 @@
             <x-slot name="icon"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></x-slot>
             Profil Akun
         </x-side-link>
+        <x-tombol-tema class="max-lg:hidden" />
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:nm-raised-sm hover:text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700">

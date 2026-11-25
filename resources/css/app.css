@@ -16,9 +16,47 @@
     --nm-lo: #c3cad8;
 }
 
+@media screen {
+    html.dark {
+        --nm-bg: #1b2130;
+        --nm-hi: #252d41;
+        --nm-lo: #10131c;
+    }
+}
+
 @layer base {
     body {
         background-color: var(--nm-bg);
+    }
+
+    /*
+     * @tailwindcss/forms memberi kolom isian latar putih. Selektor di bawah sengaja setingkat
+     * dengan milik plugin (menang karena datang belakangan) dan tetap kalah oleh kelas utilitas.
+     */
+    @media screen {
+        :where(html.dark) :is(
+            [type='text'], [type='email'], [type='password'], [type='number'], [type='date'],
+            [type='datetime-local'], [type='month'], [type='time'], [type='search'], [type='tel'],
+            [type='url'], input:where(:not([type])), textarea, select
+        ) {
+            background-color: rgb(var(--latar-white));
+            border-color: rgb(var(--garis-slate-300));
+            color: rgb(var(--teks-slate-900));
+        }
+
+        :where(html.dark) :is(input, textarea)::placeholder {
+            color: rgb(var(--teks-slate-500));
+        }
+
+        :where(html.dark) :is([type='checkbox'], [type='radio']):where(:not(:checked, :indeterminate)) {
+            background-color: rgb(var(--latar-white));
+            border-color: rgb(var(--garis-slate-300));
+        }
+
+        /* Tanda centang putih butuh isian yang cukup pekat. */
+        :where(html.dark) :is([type='checkbox'], [type='radio']):checked {
+            background-color: #4b6aaf;
+        }
     }
 }
 
@@ -39,7 +77,7 @@
     }
 }
 
-/* Area editor meniru tampilan kertas surat agar hasilnya mudah dibayangkan. */
+/* Area editor meniru tampilan kertas surat agar hasilnya mudah dibayangkan, juga pada mode gelap. */
 .editor-area {
     font-family: "Times New Roman", Times, serif;
     font-size: 12pt;

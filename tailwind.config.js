@@ -1,8 +1,12 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
+import { variabelTema, warnaTema } from './tailwind.tema';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    // Kelas "dark" pada <html> diatur tombol tema; lihat resources/js/tema.js.
+    darkMode: 'class',
+
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
@@ -31,8 +35,9 @@ export default {
                     900: '#0f1c3c',
                 },
             },
+            ...warnaTema,
         },
     },
 
-    plugins: [forms],
+    plugins: [forms, variabelTema],
 };

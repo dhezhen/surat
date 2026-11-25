@@ -38,7 +38,7 @@
                 <p class="mt-1 text-sm text-slate-600">Dipakai pada menu, halaman masuk, ikon tab browser, dan kop teks.</p>
             </div>
             <figure>
-                <img src="{{ \App\Services\LogoService::url() }}" alt="Logo yang sedang dipakai" class="h-24 w-24 rounded border border-slate-200 bg-white object-contain p-2">
+                <img src="{{ \App\Services\LogoService::url() }}" alt="Logo yang sedang dipakai" class="tema-terang h-24 w-24 rounded border border-slate-200 bg-white object-contain p-2">
                 <figcaption class="mt-1 text-xs text-slate-600">{{ $logoUnggahan ? 'Logo unggahan sedang dipakai.' : 'Logo bawaan sedang dipakai.' }}</figcaption>
             </figure>
             <form method="post" action="{{ route('pengaturan.aplikasi.logo') }}" enctype="multipart/form-data" class="space-y-2">

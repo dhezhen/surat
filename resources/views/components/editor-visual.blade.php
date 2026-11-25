@@ -41,7 +41,7 @@
 
             <div x-show="hasilAi" x-cloak class="rounded-md border border-emerald-200 bg-emerald-50 p-3 space-y-2">
                 <div class="text-xs font-medium text-emerald-900">Hasil susunan AI (belum dimasukkan ke surat)</div>
-                <div class="editor-area rounded bg-white px-3 py-2" x-html="hasilAi"></div>
+                <div class="editor-area tema-terang rounded bg-white px-3 py-2" x-html="hasilAi"></div>
                 <div class="flex flex-wrap gap-3">
                     <button type="button" @click="pakaiHasilAi(false)" class="rounded-md border border-slate-300 bg-white px-3 py-1 hover:bg-slate-50">Sisipkan di posisi kursor</button>
                     <button type="button" @click="pakaiHasilAi(true)" class="rounded-md border border-slate-300 bg-white px-3 py-1 hover:bg-slate-50">Ganti seluruh isi</button>
@@ -53,6 +53,6 @@
 
     <div x-ref="area" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Isi surat"
          @input="sinkron()" @keyup="simpanRentang()" @mouseup="simpanRentang()" @blur="simpanRentang()" @paste.prevent="tempel($event)"
-         class="editor-area overflow-y-auto rounded-b-md border border-slate-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-700"
+         class="editor-area tema-terang overflow-y-autorounded-b-md border border-slate-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-700"
          style="min-height: {{ $tinggi }}; max-height: 28rem"></div>
 </div>

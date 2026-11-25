@@ -117,12 +117,12 @@
 
             @if ($kop)
                 <figure>
-                    <img src="{{ $kop }}" alt="Kop surat yang sedang dipakai" class="w-full rounded border border-slate-200 bg-white p-2">
+                    <img src="{{ $kop }}" alt="Kop surat yang sedang dipakai" class="tema-terang w-full rounded border border-slate-200 bg-white p-2">
                     <figcaption class="mt-1 text-xs text-slate-600">{{ $kopUnggahan ? 'Kop unggahan sedang dipakai.' : 'Kop bawaan aplikasi sedang dipakai.' }}</figcaption>
                 </figure>
             @else
                 <figure>
-                    <div class="overflow-x-auto rounded border border-slate-200 bg-white p-3" style="font-family:'Times New Roman',Times,serif">
+                    <div class="tema-terang overflow-x-auto rounded border border-slate-200 bg-white p-3"style="font-family:'Times New Roman',Times,serif">
                         <div class="min-w-[36rem]">@include('surat-keluar._kop-teks')</div>
                     </div>
                     <figcaption class="mt-1 text-xs text-slate-600">Kop teks sedang dipakai.</figcaption>
@@ -157,7 +157,7 @@
                     <p class="text-sm font-medium text-slate-900">{{ $u->name }}</p>
 
                     @if ($gambar)
-                        <img src="{{ $gambar }}" alt="Tanda tangan {{ $u->name }}" class="h-24 max-w-full rounded border border-slate-200 bg-white p-2">
+                        <img src="{{ $gambar }}" alt="Tanda tangan {{ $u->name }}" class="tema-terang h-24 max-w-full rounded border border-slate-200 bg-white p-2">
                     @else
                         <p class="text-sm text-slate-700">Belum ada tanda tangan. Surat TTD digital belum bisa disetujui.</p>
                     @endif

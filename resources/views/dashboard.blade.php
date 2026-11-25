@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2 space-y-6">
             <section class="bg-white border border-slate-200 rounded-lg">
                 <h2 class="px-5 py-3 border-b border-slate-200 font-semibold">Antrean persetujuan</h2>
