@@ -1,0 +1,3 @@
+# Hanya folder public yang boleh diakses bila proyek dibuka lewat folder induknya, mis. localhost/surat.
+RewriteEngine On
+RewriteRule !^public/ - [F]
