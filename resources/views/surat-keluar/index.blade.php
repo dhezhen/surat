@@ -26,7 +26,7 @@
         @endif
     </form>
 
-    <div class="bg-white border border-slate-200 rounded-lg overflow-x-auto">
+    <div class="relative bg-white border border-slate-200 rounded-lg overflow-x-auto">
         <table class="min-w-full text-sm">
             <thead class="bg-slate-50 text-left text-slate-600">
                 <tr>

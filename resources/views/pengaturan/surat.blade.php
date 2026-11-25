@@ -122,7 +122,7 @@
                 </figure>
             @else
                 <figure>
-                    <div class="tema-terang overflow-x-auto rounded border border-slate-200 bg-white p-3"style="font-family:'Times New Roman',Times,serif">
+                    <div class="tema-terang overflow-x-auto rounded border border-slate-200 bg-white p-3" style="font-family:'Times New Roman',Times,serif">
                         <div class="min-w-[36rem]">@include('surat-keluar._kop-teks')</div>
                     </div>
                     <figcaption class="mt-1 text-xs text-slate-600">Kop teks sedang dipakai.</figcaption>

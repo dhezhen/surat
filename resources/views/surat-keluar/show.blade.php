@@ -10,7 +10,7 @@
 
     @php $user = Auth::user(); @endphp
 
-    <div class="grid gap-6 lg:grid-cols-3" x-data="{ revisi: false }">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3" x-data="{ revisi: false }">
         <div class="lg:col-span-2 order-2 lg:order-1">
             <x-kertas-pas>
                 @include('surat-keluar._kertas')

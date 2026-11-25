@@ -54,7 +54,7 @@
                 <form x-show="mode === 'gambar'" method="post" action="{{ route('profile.tanda-tangan') }}" @submit="kirim($event)" class="mt-4">
                     @csrf
                     <input type="hidden" name="tanda_tangan_gambar" x-ref="data">
-                    <canvas x-ref="kanvas" class="tema-terang w-full rounded-md border border-dashed border-slate-400 bg-white"style="height:180px; touch-action:none" aria-label="Area menggambar tanda tangan"></canvas>
+                    <canvas x-ref="kanvas" class="tema-terang w-full rounded-md border border-dashed border-slate-400 bg-white" style="height:180px; touch-action:none" aria-label="Area menggambar tanda tangan"></canvas>
                     <p x-show="kosong" x-cloak class="mt-2 text-sm text-red-700">Gambar tanda tangan di kolom terlebih dahulu.</p>
                     <div class="mt-3 flex items-center gap-3">
                         <x-primary-button>Simpan tanda tangan</x-primary-button>

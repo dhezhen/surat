@@ -8,7 +8,7 @@
         <span class="font-mono text-sm rounded bg-slate-100 px-2 py-1">{{ $surat->nomor_agenda }}</span>
     </x-slot>
 
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2 order-2 lg:order-1 bg-white border border-slate-200 rounded-lg overflow-hidden">
             @if ($surat->isImage())
                 <img src="{{ route('surat-masuk.berkas', $surat) }}" alt="Scan surat {{ $surat->nomor_surat_asal }}" class="w-full">
