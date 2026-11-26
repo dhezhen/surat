@@ -53,6 +53,6 @@
 
     <div x-ref="area" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Isi surat"
          @input="sinkron()" @keyup="simpanRentang()" @mouseup="simpanRentang()" @blur="simpanRentang()" @paste.prevent="tempel($event)"
-         class="editor-area tema-terang overflow-y-autorounded-b-md border border-slate-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-700"
+         class="editor-area tema-terang overflow-y-auto rounded-b-md border border-slate-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-700"
          style="min-height: {{ $tinggi }}; max-height: 28rem"></div>
 </div>
