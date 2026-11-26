@@ -90,7 +90,7 @@
                             <div class="mt-1">
                                 <x-editor-visual x-model="dinamis[f.name]" tinggi="16rem" :ai="$aiTersedia"
                                                  x-bind:data-konteks="JSON.stringify({ perihal: perihal, tujuan: tujuan, jenis: jenis ? jenis.nama : '' })" />
-                                <input type="hidden" :name="'dinamis[' + f.name + ']'" :value="dinamis[f.name]">
+                                <input type="hidden" :name="'dinamis[' + f.name + ']'" data-sandi :value="dinamis[f.name]">
                             </div>
                         </template>
                         <template x-if="f.type === 'tabel' && dinamis[f.name] && dinamis[f.name].kolom">
@@ -124,7 +124,7 @@
                                     <button type="button" @click="tambahKolom(f)" :disabled="dinamis[f.name].kolom.length >= 8" class="text-slate-700 underline disabled:opacity-40">+ Kolom</button>
                                     <button type="button" @click="hapusKolom(f)" :disabled="dinamis[f.name].kolom.length <= 1" class="text-slate-700 underline disabled:opacity-40">Kurangi kolom</button>
                                 </div>
-                                <input type="hidden" :name="'dinamis[' + f.name + ']'" :value="JSON.stringify(dinamis[f.name])">
+                                <input type="hidden" :name="'dinamis[' + f.name + ']'" data-sandi :value="JSON.stringify(dinamis[f.name])">
                                 @include('surat-keluar._impor-tabel')
                             </div>
                         </template>

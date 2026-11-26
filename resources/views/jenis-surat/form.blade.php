@@ -23,8 +23,8 @@
         @csrf
         @if ($edit) @method('put') @endif
 
-        <input type="hidden" name="form_schema" :value="JSON.stringify(skema)">
-        <input type="hidden" name="template_html" :value="templateHtml">
+        <input type="hidden" name="form_schema" data-sandi :value="JSON.stringify(skema)">
+        <input type="hidden" name="template_html" data-sandi :value="templateHtml">
 
         <section class="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
             <div>
