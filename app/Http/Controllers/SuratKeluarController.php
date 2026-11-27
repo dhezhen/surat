@@ -7,6 +7,7 @@ use App\Models\SuratKeluar;
 use App\Models\User;
 use App\Services\Ai\AiService;
 use App\Services\ArsipSurat;
+use App\Services\NotifikasiSurat;
 use App\Services\PenomoranService;
 use App\Services\SuratRenderer;
 use App\Support\HtmlSanitizer;
@@ -51,6 +52,9 @@ class SuratKeluarController extends Controller
         $surat->pembuat_id = $request->user()->id;
         $surat->status = $request->input('aksi') === 'ajukan' ? SuratKeluar::MENUNGGU : SuratKeluar::DRAFT;
         $surat->save();
+        if ($surat->status === SuratKeluar::MENUNGGU) {
+            NotifikasiSurat::diajukan($surat, $request->user());
+        }
 
         return redirect()->route('surat-keluar.show', $surat)->with('status',
             $surat->status === SuratKeluar::MENUNGGU ? 'Surat diajukan ke Ketua Prodi.' : 'Draf surat disimpan.');
@@ -79,10 +83,14 @@ class SuratKeluarController extends Controller
 
         $surat->fill($data);
         $surat->data_dinamis = $dinamis;
-        if ($request->input('aksi') === 'ajukan') {
+        $diajukan = $request->input('aksi') === 'ajukan';
+        if ($diajukan) {
             $surat->status = SuratKeluar::MENUNGGU;
         }
         $surat->save();
+        if ($diajukan) {
+            NotifikasiSurat::diajukan($surat, $request->user());
+        }
 
         return redirect()->route('surat-keluar.show', $surat)->with('status',
             $surat->status === SuratKeluar::MENUNGGU ? 'Surat diajukan ke Ketua Prodi.' : 'Perubahan disimpan.');
@@ -159,10 +167,11 @@ class SuratKeluarController extends Controller
         return redirect()->route('surat-keluar.show', $surat)->with('status', 'Surat dipulihkan.');
     }
 
-    public function ajukan(SuratKeluar $surat)
+    public function ajukan(Request $request, SuratKeluar $surat)
     {
         abort_unless($surat->isEditable(), 403);
         $surat->update(['status' => SuratKeluar::MENUNGGU]);
+        NotifikasiSurat::diajukan($surat, $request->user());
 
         return back()->with('status', 'Surat diajukan ke Ketua Prodi.');
     }
@@ -181,6 +190,7 @@ class SuratKeluarController extends Controller
             return back()->withErrors(['aksi' => $e->getMessage()]);
         }
         ArsipSurat::ambil($surat->load(['jenisSurat', 'penyetuju']));
+        NotifikasiSurat::disetujui($surat, $request->user());
 
         return redirect()->route('surat-keluar.show', $surat)
             ->with('status', 'Surat disetujui dan terbit dengan nomor '.$surat->nomor_surat_resmi.'.');
@@ -194,6 +204,7 @@ class SuratKeluarController extends Controller
         abort_unless($surat->status === SuratKeluar::MENUNGGU, 403);
 
         $surat->update(['status' => SuratKeluar::REVISI, 'catatan_revisi' => $request->catatan_revisi]);
+        NotifikasiSurat::revisi($surat, $request->user());
 
         return redirect()->route('dashboard')->with('status', 'Surat dikembalikan ke Staff Prodi untuk direvisi.');
     }

@@ -26,6 +26,13 @@
                     <x-input-label for="email" value="Email" />
                     <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required />
                 </div>
+                <div>
+                    <label class="inline-flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="notif_email" value="1" @checked(old('notif_email', $user->notif_email)) aria-describedby="bantuan-notif-email" class="rounded border-slate-300 text-indigo-800">
+                        Kirim pemberitahuan surat ke email ini
+                    </label>
+                    <p id="bantuan-notif-email" class="mt-1 text-xs text-slate-600">Saat surat diajukan, disetujui, atau diminta revisi. Notifikasi di aplikasi tetap muncul walau email dimatikan.</p>
+                </div>
                 <x-primary-button>Simpan</x-primary-button>
             </form>
         </section>

@@ -1,4 +1,4 @@
-@props(['href', 'active' => false, 'badge' => null])
+@props(['href', 'active' => false, 'badge' => null, 'badgeJudul' => 'menunggu tindakan'])
 
 <a href="{{ $href }}"
    @if ($active) aria-current="page" @endif
@@ -9,6 +9,6 @@
     </svg>
     <span class="flex-1 truncate">{{ $slot }}</span>
     @if ($badge)
-        <span class="min-w-[1.5rem] rounded-md bg-indigo-900 px-1.5 py-0.5 text-center text-xs font-semibold text-white" title="{{ $badge }} menunggu tindakan">{{ $badge }}</span>
+        <span class="min-w-[1.5rem] rounded-md bg-indigo-900 px-1.5 py-0.5 text-center text-xs font-semibold text-white" title="{{ $badge }} {{ $badgeJudul }}">{{ $badge }}<span class="sr-only"> {{ $badgeJudul }}</span></span>
     @endif
 </a>

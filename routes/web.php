@@ -7,6 +7,8 @@ use App\Http\Controllers\PengaturanAplikasiController;
 use App\Http\Controllers\PengaturanSuratController;
 use App\Http\Controllers\EksporController;
 use App\Http\Controllers\JenisSuratController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PencarianController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\ProfileController;
@@ -31,6 +33,11 @@ Route::get('/validasi/{uuid}/pdf', [ValidasiController::class, 'pdf'])
 Route::middleware(['auth', 'aktif'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/pencarian', PencarianController::class)->name('pencarian');
+    Route::get('/laporan', LaporanController::class)->name('laporan');
+
+    Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::get('/notifikasi/{id}', [NotifikasiController::class, 'buka'])->name('notifikasi.buka')->whereUuid('id');
+    Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

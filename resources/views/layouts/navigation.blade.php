@@ -4,23 +4,33 @@
     // Angka pada menu mengikuti tindakan yang menunggu peran ini.
     $menunggu = $user->isSuperAdmin() ? 0 : \App\Models\SuratKeluar::where('status', $user->isKaprodi() ? 'menunggu_approval' : 'revisi')->count();
     $menunggu = $menunggu > 0 ? $menunggu : null;
+    $belumDibaca = $user->unreadNotifications()->count() ?: null;
     $identitas = \App\Support\Identitas::semua();
 @endphp
 
 {{-- Bilah atas hanya untuk layar kecil; di desktop menu selalu terlihat di sisi kiri. --}}
-<div class="sticky top-0 z-30 flex h-14 items-center justify-between px-4 lg:hidden" style="background-color: var(--nm-bg)">
+<div class="sticky top-0 z-30 flex h-14 items-center justify-between px-4 lg:hidden print:hidden" style="background-color: var(--nm-bg)">
     <button type="button" @click="sidebar = true" class="nm-raised-sm rounded-xl p-2.5 text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700"
             aria-label="Buka menu navigasi" :aria-expanded="sidebar.toString()" aria-controls="menu-samping">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
     </button>
     <a href="{{ route('dashboard') }}" class="font-serif text-lg font-bold text-indigo-900">{{ $identitas['nama_aplikasi'] }}</a>
-    <x-tombol-tema ringkas />
+    <div class="flex items-center gap-2">
+        <a href="{{ route('notifikasi.index') }}" class="nm-raised-sm relative rounded-xl p-2.5 text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700"
+           aria-label="Notifikasi{{ $belumDibaca ? ', '.$belumDibaca.' belum dibaca' : '' }}">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg>
+            @if ($belumDibaca)
+                <span class="absolute -right-1 -top-1 min-w-[1.25rem] rounded-full bg-indigo-900 px-1 text-center text-xs font-semibold leading-5 text-white" aria-hidden="true">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>
+            @endif
+        </a>
+        <x-tombol-tema ringkas />
+    </div>
 </div>
 
 <div x-show="sidebar" x-cloak x-transition.opacity class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" @click="sidebar = false" aria-hidden="true"></div>
 
 <aside id="menu-samping" aria-label="Menu utama"
-       class="nm-raised fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col rounded-r-2xl p-4 transition-transform duration-200 lg:inset-y-4 lg:left-4 lg:w-64 lg:translate-x-0 lg:rounded-2xl"
+       class="nm-raised fixed inset-y-0 left-0 z-50 flex w-72 print:hidden -translate-x-full flex-col rounded-r-2xl p-4 transition-transform duration-200 lg:inset-y-4 lg:left-4 lg:w-64 lg:translate-x-0 lg:rounded-2xl"
        :class="{ 'translate-x-0': sidebar }">
 
     <div class="flex items-start justify-between px-2 pb-4 pt-1">
@@ -44,6 +54,10 @@
                     <x-slot name="icon"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></x-slot>
                     Dasbor
                 </x-side-link>
+                <x-side-link :href="route('notifikasi.index')" :active="request()->routeIs('notifikasi.*')" :badge="$belumDibaca" badge-judul="notifikasi belum dibaca">
+                    <x-slot name="icon"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></x-slot>
+                    Notifikasi
+                </x-side-link>
                 <x-side-link :href="route('surat-keluar.index')" :active="request()->routeIs('surat-keluar.*')" :badge="$menunggu">
                     <x-slot name="icon"><path d="M20 4 10.5 13.5M20 4l-6 16-3.5-6.5L4 10z"/></x-slot>
                     Surat Keluar
@@ -60,6 +74,10 @@
             <x-side-link :href="route('pencarian')" :active="request()->routeIs('pencarian')">
                 <x-slot name="icon"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></x-slot>
                 Pencarian Terpadu
+            </x-side-link>
+            <x-side-link :href="route('laporan')" :active="request()->routeIs('laporan')">
+                <x-slot name="icon"><path d="M4 20h16M7 16v-5M12 16V7M17 16v-8"/></x-slot>
+                Laporan &amp; Statistik
             </x-side-link>
         </div>
 

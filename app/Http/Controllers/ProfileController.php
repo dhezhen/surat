@@ -26,6 +26,7 @@ class ProfileController extends Controller
             'jabatan' => ['required', 'string', 'max:255'],
             'nidn' => ['nullable', 'string', 'max:30'],
         ], [], ['jabatan' => 'Jabatan', 'nidn' => \App\Support\Identitas::ambil('label_id_penandatangan')]);
+        $data['notif_email'] = $request->boolean('notif_email');
 
         $user->update($data);
 

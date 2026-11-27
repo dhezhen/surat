@@ -14,6 +14,8 @@
     --nm-bg: #e7ebf2;
     --nm-hi: #ffffff;
     --nm-lo: #c3cad8;
+    /* Isian batang grafik laporan; diuji kontras dan kroma terhadap kartu putih dan kartu gelap #222a3b. */
+    --grafik-batang: #3f5c9d;
 }
 
 @media screen {
@@ -21,6 +23,7 @@
         --nm-bg: #1b2130;
         --nm-hi: #252d41;
         --nm-lo: #10131c;
+        --grafik-batang: #6d8ad0;
     }
 }
 

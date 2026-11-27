@@ -22,7 +22,7 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
-        'name', 'email', 'password', 'jabatan', 'nidn', 'role', 'signature_path', 'is_active',
+        'name', 'email', 'password', 'jabatan', 'nidn', 'role', 'signature_path', 'is_active', 'notif_email',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -33,6 +33,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'notif_email' => 'boolean',
         ];
     }
 

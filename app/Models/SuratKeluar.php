@@ -48,11 +48,27 @@ class SuratKeluar extends Model
         static::creating(function (self $s) {
             $s->uuid_validasi ??= (string) Str::uuid();
         });
+
+        // Dicatat di sini agar semua jalur pengajuan dan persetujuan ikut terekam untuk laporan.
+        static::saving(function (self $s) {
+            if ($s->isDirty('status')) {
+                match ($s->status) {
+                    self::MENUNGGU => $s->diajukan_at = now(),
+                    self::TERBIT => $s->disetujui_at = now(),
+                    default => null,
+                };
+            }
+        });
     }
 
     protected function casts(): array
     {
-        return ['tanggal_surat' => 'date', 'tampil_pdf_publik' => 'boolean'];
+        return [
+            'tanggal_surat' => 'date',
+            'tampil_pdf_publik' => 'boolean',
+            'diajukan_at' => 'datetime',
+            'disetujui_at' => 'datetime',
+        ];
     }
 
     /** Surat terbit memakai pilihan tersimpan; sebelum terbit mengikuti pengaturan jenis surat. */

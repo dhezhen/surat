@@ -19,7 +19,7 @@
              @keydown.escape.window="sidebar = false" class="min-h-screen">
             @include('layouts.navigation')
 
-            <div class="lg:pl-72">
+            <div class="lg:pl-72 print:pl-0">
                 @isset($header)
                     <header class="border-b border-slate-300/70">
                         <div class="{{ isset($lebar) ? trim((string) $lebar) : 'max-w-7xl' }} mx-auto py-5 px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3 [&_h1]:font-serif [&_h1]:text-2xl">
