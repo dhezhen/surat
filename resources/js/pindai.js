@@ -1,7 +1,11 @@
+import { cembung, SUDUT_PENUH } from './potong';
 import {
     berkasDariHalaman,
     buangHalaman,
+    deteksiKertas,
+    deteksiUlang,
     halamanDariFoto,
+    potongUlang,
     kameraLangsungTersedia,
     matikanKamera,
     namaPindaian,
@@ -10,7 +14,18 @@ import {
     potretVideo,
 } from './kamera';
 
-export const KOLOM_OCR = ['nomor_surat_asal', 'tanggal_surat', 'pengirim', 'perihal', 'kategori'];
+const JEDA_PANDU = 300;
+const LANGKAH_PANAH = 0.005;
+
+/** Kotak tampilan video di dalam elemennya (object-contain menyisakan pita hitam). */
+function kotakVideo(video) {
+    const kw = video.clientWidth, kt = video.clientHeight;
+    const skala = Math.min(kw / video.videoWidth, kt / video.videoHeight);
+    const w = video.videoWidth * skala, h = video.videoHeight * skala;
+    return { x: (kw - w) / 2, y: (kt - h) / 2, w, h };
+}
+
+export const KOLOM_OCR =['nomor_surat_asal', 'tanggal_surat', 'pengirim', 'perihal', 'kategori'];
 
 /**
  * Mengisi kolom dari hasil OCR tanpa menimpa yang sudah diketik pengguna.
@@ -33,7 +48,8 @@ export function isiDariOcr(target, hasil, kategoriSah, timpa = false) {
 document.addEventListener('alpine:init', () => {
     /**
      * Dialog pemotret halaman surat. Selesai memotret, mengirim event "pindai-selesai"
-     * berisi { berkas: File, halaman: [{ blob, url, lebar, tinggi }] }; penerima memiliki halaman itu.
+     * berisi { berkas: File, halaman: [{ blob, url, lebar, tinggi, asli, sudut, cara }] }; penerima memiliki halaman itu.
+     * Tiap foto dipotong otomatis mengikuti tepi kertas; sudutnya bisa diatur ulang sebelum dikirim.
      * Mode batch menambah tombol "Surat berikutnya" yang mengirim event yang sama tanpa menutup kamera.
      */
     window.Alpine.data('kameraPindai', ({ batch = false } = {}) => ({
@@ -48,6 +64,12 @@ document.addEventListener('alpine:init', () => {
         kilat: false,
         pengumuman: '',
         jumlahDikirim: 0,
+        // Penyunting sudut: { i, url, sudut, aktif } selama terbuka.
+        atur: null,
+        pandu: null,
+        pesanAtur: '',
+        _timerPandu: null,
+        _seret: null,
 
         async buka() {
             this.galat = '';
@@ -61,6 +83,7 @@ document.addEventListener('alpine:init', () => {
                 this.stream = await nyalakanKamera(this.$refs.video);
                 this.siap = true;
                 this.$nextTick(() => this.$refs.tombolAmbil?.focus());
+                this.jalankanPandu();
             } catch (err) {
                 console.error(err);
                 this.galat = pesanGalatKamera(err);
@@ -74,10 +97,11 @@ document.addEventListener('alpine:init', () => {
             if (!this.siap || this.sibuk) return;
             this.sibuk = true;
             try {
-                this.halaman.push(await potretVideo(this.$refs.video));
+                const h = await potretVideo(this.$refs.video);
+                this.halaman.push(h);
                 this.kilat = true;
                 setTimeout(() => (this.kilat = false), 150);
-                this.umumkan(`Halaman ${this.halaman.length} diambil.`);
+                this.umumkan(`Halaman ${this.halaman.length} diambil. ${this.keteranganCara(h)}`);
             } catch (err) {
                 this.galat = err.message;
             } finally {
@@ -101,6 +125,139 @@ document.addEventListener('alpine:init', () => {
             }
             this.sibuk = false;
             this.umumkan(`${this.halaman.length} halaman siap.`);
+        },
+
+        labelCara(h) {
+            return { otomatis: 'Terpotong otomatis', utuh: 'Utuh, ketuk untuk atur', manual: 'Diatur manual' }[h.cara];
+        },
+
+        keteranganCara(h) {
+            return {
+                otomatis: 'Tepi kertas terpotong otomatis.',
+                utuh: 'Tepi kertas tidak ditemukan, foto disimpan utuh. Ketuk gambarnya untuk mengatur sudut.',
+                manual: 'Sudut diatur manual.',
+            }[h.cara];
+        },
+
+        /** Garis bantu: tepi kertas yang terdeteksi digambar di atas video, beberapa kali per detik. */
+        jalankanPandu() {
+            clearTimeout(this._timerPandu);
+            const putaran = () => {
+                const video = this.$refs.video;
+                if (!this.stream || !this.$refs.dialog.open) return;
+                if (!this.atur && video.videoWidth) {
+                    this.pandu = deteksiKertas(video, video.videoWidth, video.videoHeight);
+                    this.gambarPandu();
+                }
+                this._timerPandu = setTimeout(putaran, JEDA_PANDU);
+            };
+            putaran();
+        },
+
+        gambarPandu() {
+            const kanvas = this.$refs.pandu;
+            const video = this.$refs.video;
+            if (!kanvas || !video.videoWidth) return;
+            const rasio = window.devicePixelRatio || 1;
+            kanvas.width = video.clientWidth * rasio;
+            kanvas.height = video.clientHeight * rasio;
+            const ctx = kanvas.getContext('2d');
+            ctx.clearRect(0, 0, kanvas.width, kanvas.height);
+            if (!this.pandu) return;
+            const k = kotakVideo(video);
+            ctx.scale(rasio, rasio);
+            ctx.beginPath();
+            this.pandu.forEach((p, i) => ctx[i ? 'lineTo' : 'moveTo'](k.x + p.x * k.w, k.y + p.y * k.h));
+            ctx.closePath();
+            // Hijau di atas jendela bidik hitam: tanda kertas sudah terbaca dan siap difoto.
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.18)';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#22c55e';
+            ctx.stroke();
+        },
+
+        bukaAtur(i) {
+            const h = this.halaman[i];
+            this.atur = { i, url: URL.createObjectURL(h.asli.blob), sudut: h.sudut.map((p) => ({ ...p })), aktif: 0 };
+            this.pesanAtur = '';
+            this.umumkan(`Mengatur sudut halaman ${i + 1}. Seret titik sudut, atau pilih titik lalu pakai tombol panah.`);
+            this.$nextTick(() => this.$refs.dialog.querySelector('[data-sudut="0"]')?.focus());
+        },
+
+        tutupAtur() {
+            if (!this.atur) return;
+            const i = this.atur.i;
+            URL.revokeObjectURL(this.atur.url);
+            this.atur = null;
+            this.$nextTick(() => this.$refs.dialog.querySelector(`[data-halaman="${i}"]`)?.focus());
+        },
+
+        mulaiSeret(e, k) {
+            e.preventDefault();
+            e.currentTarget.setPointerCapture(e.pointerId);
+            this.atur.aktif = k;
+            this._seret = k;
+        },
+
+        seret(e) {
+            if (this._seret === null || !this.atur) return;
+            const kotak = this.$refs.bidangAtur.getBoundingClientRect();
+            const jepit = (v) => Math.min(1, Math.max(0, v));
+            this.atur.sudut[this._seret] = { x: jepit((e.clientX - kotak.left) / kotak.width), y: jepit((e.clientY - kotak.top) / kotak.height) };
+        },
+
+        lepasSeret() {
+            this._seret = null;
+        },
+
+        panah(e, k) {
+            const arah = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+            if (!arah) return;
+            e.preventDefault();
+            const langkah = e.shiftKey ? LANGKAH_PANAH * 4 : LANGKAH_PANAH;
+            const p = this.atur.sudut[k];
+            const jepit = (v) => Math.min(1, Math.max(0, v));
+            this.atur.sudut[k] = { x: jepit(p.x + arah[0] * langkah), y: jepit(p.y + arah[1] * langkah) };
+        },
+
+        async aturOtomatis() {
+            const sudut = await deteksiUlang(this.halaman[this.atur.i]);
+            if (sudut) {
+                this.atur.sudut = sudut;
+                this.pesanAtur = '';
+                this.umumkan('Tepi kertas ditemukan.');
+            } else {
+                this.pesanAtur = 'Tepi kertas tidak ditemukan. Seret keempat titik ke sudut kertas.';
+            }
+        },
+
+        aturUtuh() {
+            this.atur.sudut = SUDUT_PENUH.map((p) => ({ ...p }));
+            this.pesanAtur = '';
+        },
+
+        get sudutSah() {
+            return !!this.atur && cembung(this.atur.sudut);
+        },
+
+        async simpanAtur() {
+            if (!this.sudutSah || this.sibuk) return;
+            this.sibuk = true;
+            try {
+                const i = this.atur.i;
+                const lama = this.halaman[i];
+                const utuh = this.atur.sudut.every((p, k) => Math.abs(p.x - SUDUT_PENUH[k].x) < 1e-3 && Math.abs(p.y - SUDUT_PENUH[k].y) < 1e-3);
+                this.halaman[i] = await potongUlang(lama, utuh ? null : this.atur.sudut);
+                buangHalaman([lama]);
+                this.tutupAtur();
+                this.umumkan(`Halaman ${i + 1} dipotong ulang.`);
+            } catch (err) {
+                console.error(err);
+                this.pesanAtur = 'Halaman gagal dipotong. Coba atur ulang sudutnya.';
+            } finally {
+                this.sibuk = false;
+            }
         },
 
         hapus(i) {
@@ -141,6 +298,12 @@ document.addEventListener('alpine:init', () => {
 
         // Escape atau tombol tutup: tanya dulu bila masih ada halaman yang belum dipakai.
         batal(e) {
+            // Escape di penyunting sudut hanya menutup penyunting.
+            if (this.atur) {
+                e?.preventDefault();
+                this.tutupAtur();
+                return false;
+            }
             if (this.halaman.length && !confirm(`Buang ${this.halaman.length} halaman yang belum dipakai?`)) {
                 e?.preventDefault();
                 return false;
@@ -157,6 +320,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         bersihkan() {
+            clearTimeout(this._timerPandu);
+            this.pandu = null;
+            if (this.atur) URL.revokeObjectURL(this.atur.url);
+            this.atur = null;
             matikanKamera(this.stream, this.$refs.video);
             this.stream = null;
             this.siap = false;

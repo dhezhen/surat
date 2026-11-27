@@ -1,8 +1,13 @@
 import { susunPdf } from './pdf-gambar';
+import { SISI_DETEKSI, SUDUT_PENUH, deteksiSudut, luruskan, susutkan, ukuranLurus } from './potong';
 
 /** Sisi terpanjang foto halaman. Cukup tajam untuk OCR, dan 10 halaman tetap jauh di bawah batas unggah 10 MB. */
 const SISI_MAKS = 2200;
+/** Foto asli disimpan lebih besar agar potongan dari bagian kecil foto tetap tajam. */
+const SISI_ASLI = 3000;
 const MUTU_JPEG = 0.85;
+/** Porsi penyusutan sudut otomatis ke arah pusat (lihat susutkan di potong.js). */
+const SUSUT_OTOMATIS = 0.03;
 
 /** Kamera langsung di halaman hanya tersedia lewat HTTPS atau localhost. */
 export function kameraLangsungTersedia() {
@@ -41,25 +46,85 @@ export function pesanGalatKamera(err) {
     }
 }
 
-/** Menggambar sumber (video atau gambar) ke kanvas berukuran wajar, lalu menyimpannya sebagai halaman JPEG. */
-async function keHalaman(sumber, lebarAsli, tinggiAsli) {
-    const skala = Math.min(1, SISI_MAKS / Math.max(lebarAsli, tinggiAsli));
-    const lebar = Math.round(lebarAsli * skala);
-    const tinggi = Math.round(tinggiAsli * skala);
-
+function kanvasDari(sumber, lebarAsli, tinggiAsli, sisiMaks) {
+    const skala = Math.min(1, sisiMaks / Math.max(lebarAsli, tinggiAsli));
     const kanvas = document.createElement('canvas');
-    kanvas.width = lebar;
-    kanvas.height = tinggi;
-    const ctx = kanvas.getContext('2d');
+    kanvas.width = Math.max(1, Math.round(lebarAsli * skala));
+    kanvas.height = Math.max(1, Math.round(tinggiAsli * skala));
+    const ctx = kanvas.getContext('2d', { willReadFrequently: true });
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, lebar, tinggi);
-    ctx.drawImage(sumber, 0, 0, lebar, tinggi);
+    ctx.fillRect(0, 0, kanvas.width, kanvas.height);
+    ctx.drawImage(sumber, 0, 0, kanvas.width, kanvas.height);
+    return kanvas;
+}
 
-    const blob = await new Promise((selesai, gagal) =>
-        kanvas.toBlob((b) => (b ? selesai(b) : gagal(new Error('Foto gagal disimpan.'))), 'image/jpeg', MUTU_JPEG),
-    );
+const keJpeg = (kanvas, mutu = MUTU_JPEG) =>
+    new Promise((selesai, gagal) => kanvas.toBlob((b) => (b ? selesai(b) : gagal(new Error('Foto gagal disimpan.'))), 'image/jpeg', mutu));
 
-    return { blob, lebar, tinggi, url: URL.createObjectURL(blob) };
+/** Mencari tepi kertas pada sumber apa pun (video, gambar, kanvas). Hasil 0..1 atau null. */
+export function deteksiKertas(sumber, lebarAsli, tinggiAsli) {
+    const kecil = kanvasDari(sumber, lebarAsli, tinggiAsli, SISI_DETEKSI);
+    const data = kecil.getContext('2d').getImageData(0, 0, kecil.width, kecil.height).data;
+    return deteksiSudut(data, kecil.width, kecil.height);
+}
+
+/** Meluruskan bagian kanvas asli di dalam sudut (0..1) menjadi halaman tegak. */
+function potongKanvas(asli, sudut, susut) {
+    const sudutPiksel = susutkan(sudut, susut).map((p) => ({ x: p.x * asli.width, y: p.y * asli.height }));
+    const { lebar, tinggi } = ukuranLurus(sudutPiksel, SISI_MAKS);
+    const sumber = asli.getContext('2d').getImageData(0, 0, asli.width, asli.height).data;
+    const hasil = document.createElement('canvas');
+    hasil.width = lebar;
+    hasil.height = tinggi;
+    hasil.getContext('2d').putImageData(new ImageData(luruskan(sumber, asli.width, asli.height, sudutPiksel, lebar, tinggi), lebar, tinggi), 0, 0);
+    return hasil;
+}
+
+/**
+ * Halaman = hasil potongan (yang diunggah) + foto asli (untuk memotong ulang).
+ * cara: 'otomatis' (tepi kertas terdeteksi), 'utuh' (tidak terdeteksi), 'manual' (diatur pengguna).
+ */
+async function susunHalaman(asli, sudut, cara, asliBlob = null) {
+    // Sudut otomatis disusutkan sedikit; sudut yang diatur tangan dipakai persis.
+    const hasil = sudut ? potongKanvas(asli, sudut, cara === 'otomatis' ? SUSUT_OTOMATIS : 0) : kanvasDari(asli, asli.width, asli.height, SISI_MAKS);
+    const blob = await keJpeg(hasil);
+
+    return {
+        blob,
+        url: URL.createObjectURL(blob),
+        lebar: hasil.width,
+        tinggi: hasil.height,
+        asli: { blob: asliBlob ?? (await keJpeg(asli, 0.9)), lebar: asli.width, tinggi: asli.height },
+        sudut: sudut ?? SUDUT_PENUH,
+        cara,
+    };
+}
+
+async function keHalaman(sumber, lebarAsli, tinggiAsli) {
+    const asli = kanvasDari(sumber, lebarAsli, tinggiAsli, SISI_ASLI);
+    const sudut = deteksiKertas(asli, asli.width, asli.height);
+
+    return susunHalaman(asli, sudut, sudut ? 'otomatis' : 'utuh');
+}
+
+/** Memotong ulang dari foto asli dengan sudut baru (null = foto utuh). Halaman lama tidak diubah. */
+export async function potongUlang(halaman, sudut) {
+    const gambar = await createImageBitmap(halaman.asli.blob);
+    try {
+        const asli = kanvasDari(gambar, gambar.width, gambar.height, SISI_ASLI);
+        return await susunHalaman(asli, sudut, sudut ? 'manual' : 'utuh', halaman.asli.blob);
+    } finally {
+        gambar.close();
+    }
+}
+
+export async function deteksiUlang(halaman) {
+    const gambar = await createImageBitmap(halaman.asli.blob);
+    try {
+        return deteksiKertas(gambar, gambar.width, gambar.height);
+    } finally {
+        gambar.close();
+    }
 }
 
 export function potretVideo(video) {
