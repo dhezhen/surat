@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Peran;
+use App\Models\User;
 use App\Services\LogoService;
 use App\Support\Identitas;
+use App\Support\PengaturanEmail;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +24,11 @@ class PengaturanAplikasiController extends Controller
         return view('pengaturan.aplikasi', [
             'identitas' => Identitas::semua(),
             'logoUnggahan' => LogoService::pakaiUnggahan(),
+            'email' => PengaturanEmail::semua(),
+            // Kata sandi SMTP tidak pernah dikirim ke browser; cukup penanda sudah tersimpan.
+            'sandiTersimpan' => PengaturanEmail::sandi() !== null,
+            'perans' => Peran::withCount('pengguna')->orderBy('nama')->get(),
+            'jumlahBawaan' => User::whereNull('peran_id')->selectRaw('role, count(*) as jumlah')->groupBy('role')->pluck('jumlah', 'role'),
         ]);
     }
 

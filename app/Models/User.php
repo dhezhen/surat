@@ -22,7 +22,7 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
-        'name', 'email', 'password', 'jabatan', 'nidn', 'role', 'signature_path', 'is_active', 'notif_email',
+        'name', 'email', 'password', 'jabatan', 'nidn', 'role', 'peran_id', 'signature_path', 'is_active', 'notif_email',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -65,9 +65,63 @@ class User extends Authenticatable
             : null;
     }
 
+    public function peran()
+    {
+        return $this->belongsTo(Peran::class);
+    }
+
+    /** Nama peran tambahan bila ada; kewenangan tetap mengikuti kolom role. */
     public function labelRole(): string
     {
-        return self::PERAN[$this->role] ?? $this->role;
+        if ($this->peran_id && $this->peran) {
+            return $this->peran->nama;
+        }
+
+        return self::namaPeranBawaan()[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Nama tampil peran bawaan. Super Admin boleh menggantinya; kodenya (staff_prodi dst.) tetap.
+     *
+     * @return array<string, string>
+     */
+    public static function namaPeranBawaan(): array
+    {
+        if (! app()->bound('peran.nama')) {
+            $tersimpan = Pengaturan::where('kunci', 'like', 'peran.nama.%')->pluck('nilai', 'kunci');
+            $nama = [];
+            foreach (self::PERAN as $kode => $bawaan) {
+                $nama[$kode] = $tersimpan["peran.nama.$kode"] ?? $bawaan;
+            }
+            app()->instance('peran.nama', $nama);
+        }
+
+        return app('peran.nama');
+    }
+
+    /** Nama kosong atau sama dengan aslinya berarti kembali ke nama asli. */
+    public static function simpanNamaPeranBawaan(string $kode, ?string $nama): void
+    {
+        $nama = trim((string) $nama);
+        Pengaturan::simpan("peran.nama.$kode", $nama === '' || $nama === self::PERAN[$kode] ? null : $nama);
+        app()->forgetInstance('peran.nama');
+    }
+
+    /** Nilai pilihan peran pada form pengguna: kode peran bawaan, atau "peran:{id}" untuk peran tambahan. */
+    public function kunciPeran(): ?string
+    {
+        return $this->peran_id ? "peran:{$this->peran_id}" : $this->role;
+    }
+
+    /** @return array<string, string> */
+    public static function pilihanPeran(): array
+    {
+        $pilihan = self::namaPeranBawaan();
+        foreach (Peran::orderBy('nama')->get() as $peran) {
+            $pilihan["peran:{$peran->id}"] = $peran->nama.' (akses '.$peran->labelHakAkses().')';
+        }
+
+        return $pilihan;
     }
 
     public function scopeAktif($query)

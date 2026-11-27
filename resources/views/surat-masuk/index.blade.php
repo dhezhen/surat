@@ -3,7 +3,10 @@
     <x-slot name="header">
         <h1 class="text-xl font-semibold text-slate-900">Arsip Surat Masuk</h1>
         @if (Auth::user()->isStaff())
-            <a href="{{ route('surat-masuk.create') }}" class="inline-flex items-center rounded-md bg-indigo-800 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">+ Arsipkan Surat</a>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('surat-masuk.pindai') }}" class="inline-flex min-h-[44px] items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 hover:bg-slate-50">Pindai banyak surat</a>
+                <a href="{{ route('surat-masuk.create') }}" class="inline-flex min-h-[44px] items-center rounded-md bg-indigo-800 px-4 text-sm font-medium text-white hover:bg-indigo-700">+ Arsipkan Surat</a>
+            </div>
         @endif
     </x-slot>
 

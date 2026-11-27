@@ -40,7 +40,22 @@ class SuratMasukController extends Controller
             return SuratMasuk::create($data);
         }));
 
+        // Halaman pindai banyak surat menyimpan tiap surat lewat fetch.
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id' => $surat->id,
+                'nomor_agenda' => $surat->nomor_agenda,
+                'url' => route('surat-masuk.show', $surat),
+            ], 201);
+        }
+
         return redirect()->route('surat-masuk.show', $surat)->with('status', 'Surat masuk diarsipkan dengan nomor agenda '.$surat->nomor_agenda.'.');
+    }
+
+    /** Memotret banyak surat sekaligus; tiap surat tetap menjadi satu arsip. */
+    public function pindai()
+    {
+        return view('surat-masuk.pindai', ['kategori' => SuratMasuk::pilihanKategori()]);
     }
 
     public function show(SuratMasuk $surat)

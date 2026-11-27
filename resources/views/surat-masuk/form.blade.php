@@ -26,6 +26,7 @@
               'pratinjau' => $edit ? route('surat-masuk.berkas', $surat) : null,
               'tipePratinjau' => $edit ? ($surat->isImage() ? 'gambar' : 'pdf') : null,
           ]))"
+          @pindai-selesai="terimaPindaian($event.detail)"
           class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         @csrf
         @if ($edit) @method('put') @endif
@@ -33,10 +34,19 @@
         <div class="space-y-5">
             <section class="bg-white border border-slate-200 rounded-lg p-5">
                 <h2 class="font-semibold">1. Berkas scan</h2>
-                <input id="file_scan" name="file_scan" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/png,image/jpeg"
+                <label for="file_scan" class="mt-3 block text-sm text-slate-700">Unggah berkas</label>
+                <input id="file_scan" x-ref="berkas" name="file_scan" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/png,image/jpeg"
                        @change="pilihBerkas($event)" @required(! $edit)
-                       class="mt-3 block w-full text-sm" aria-describedby="info-ocr">
+                       class="mt-1 block w-full text-sm" aria-describedby="info-ocr">
                 <p class="mt-1 text-xs text-slate-600">{{ $edit ? 'Pilih berkas baru hanya jika ingin mengganti. ' : '' }}PDF, JPG, atau PNG, maks. 10 MB.</p>
+                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span class="text-sm text-slate-600">atau</span>
+                    <x-kamera-pindai />
+                    @unless ($edit)
+                        <a href="{{ route('surat-masuk.pindai') }}" class="inline-flex min-h-[44px] items-center text-sm text-indigo-800 underline">Banyak surat? Pindai sekaligus</a>
+                    @endunless
+                </div>
+                <p class="mt-1 text-xs text-slate-600">Foto beberapa halaman digabung menjadi satu PDF.</p>
 
                 <div id="info-ocr" class="mt-3 text-sm" aria-live="polite">
                     <p x-show="status === 'diam'" class="text-slate-600">
@@ -133,6 +143,13 @@
             <div class="overflow-hidden rounded-lg border border-slate-200 bg-white">
                 <template x-if="pratinjau && tipePratinjau === 'gambar'">
                     <img :src="pratinjau" alt="Pratinjau scan surat" class="w-full">
+                </template>
+                <template x-if="tipePratinjau === 'halaman'">
+                    <div class="space-y-2 bg-slate-100 p-2">
+                        <template x-for="(h, i) in halamanPindai" :key="h.url">
+                            <img :src="h.url" :alt="`Halaman ${i + 1} hasil kamera`" class="w-full bg-white">
+                        </template>
+                    </div>
                 </template>
                 <template x-if="pratinjau && tipePratinjau === 'pdf'">
                     <iframe :src="pratinjau" title="Pratinjau PDF surat" class="w-full" style="height: 75vh"></iframe>

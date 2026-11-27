@@ -1,8 +1,9 @@
-const KOLOM = ['nomor_surat_asal', 'tanggal_surat', 'pengirim', 'perihal', 'kategori'];
+import { buangHalaman } from './kamera';
+import { KOLOM_OCR, isiDariOcr } from './pindai';
 
 document.addEventListener('alpine:init', () => {
     /**
-     * Formulir surat masuk dengan pembacaan otomatis (OCR) dari berkas scan.
+     * Formulir surat masuk dengan pembacaan otomatis (OCR) dari berkas scan atau foto kamera.
      * Hasil OCR hanya saran: kolom yang diisi otomatis ditandai agar diperiksa, dan kolom yang
      * sudah diketik pengguna tidak ditimpa.
      */
@@ -14,6 +15,7 @@ document.addEventListener('alpine:init', () => {
         dariOcr: {},
         pratinjau: awal.pratinjau,
         tipePratinjau: awal.tipePratinjau,
+        halamanPindai: [],
         status: 'diam', // diam | membaca | selesai | gagal
         pesan: '',
         persen: 0,
@@ -27,14 +29,34 @@ document.addEventListener('alpine:init', () => {
             this.dariOcr[kolom] = false;
         },
 
+        lepasPratinjau() {
+            if (this.pratinjauBlob) URL.revokeObjectURL(this.pratinjauBlob);
+            this.pratinjauBlob = null;
+            buangHalaman(this.halamanPindai);
+            this.halamanPindai = [];
+        },
+
         async pilihBerkas(e) {
             const file = e.target.files[0];
             if (!file) return;
-            if (this.pratinjauBlob) URL.revokeObjectURL(this.pratinjauBlob);
+            this.lepasPratinjau();
             this.pratinjauBlob = URL.createObjectURL(file);
             this.pratinjau = this.pratinjauBlob;
             this.tipePratinjau = file.type === 'application/pdf' ? 'pdf' : 'gambar';
             this.berkas = file;
+            await this.baca();
+        },
+
+        /** Hasil kamera dimasukkan ke kolom berkas agar terkirim bersama formulir seperti berkas biasa. */
+        async terimaPindaian({ berkas, halaman }) {
+            this.lepasPratinjau();
+            const dt = new DataTransfer();
+            dt.items.add(berkas);
+            this.$refs.berkas.files = dt.files;
+            this.halamanPindai = halaman;
+            this.pratinjau = halaman[0].url;
+            this.tipePratinjau = 'halaman';
+            this.berkas = berkas;
             await this.baca();
         },
 
@@ -44,11 +66,14 @@ document.addEventListener('alpine:init', () => {
             this.pesan = 'Menyiapkan';
             this.persen = 2;
             try {
-                const { bacaBerkas } = await import('./ocr');
-                const r = await bacaBerkas(this.berkas, this.basis, (pesan, p) => {
+                const ocr = await import('./ocr');
+                const lapor = (pesan, p) => {
                     this.pesan = pesan;
                     this.persen = Math.max(this.persen, Math.round(p * 100));
-                });
+                };
+                const r = this.halamanPindai.length
+                    ? await ocr.bacaGambar(this.halamanPindai.map((h) => h.blob), this.basis, lapor)
+                    : await ocr.bacaBerkas(this.berkas, this.basis, lapor);
                 this.teks = r.teks;
                 this.metode = r.metode;
                 this.hasil = r.hasil;
@@ -64,21 +89,11 @@ document.addEventListener('alpine:init', () => {
 
         // timpa = true: ganti semua kolom, termasuk yang sudah diketik pengguna.
         terapkan(timpa) {
-            if (!this.hasil) return;
-            KOLOM.forEach((k) => {
-                let nilai = this.hasil[k];
-                if (!nilai) return;
-                if (k === 'kategori' && !this.kategoriSah.includes(nilai)) return;
-                if (!timpa && this.disentuh[k]) return;
-                if (!timpa && k !== 'tanggal_surat' && k !== 'kategori' && this.f[k]) return;
-                this.f[k] = nilai;
-                this.dariOcr[k] = true;
-                if (timpa) this.disentuh[k] = false;
-            });
+            isiDariOcr(this, this.hasil, this.kategoriSah, timpa);
         },
 
         get jumlahTerdeteksi() {
-            return this.hasil ? KOLOM.filter((k) => this.hasil[k]).length : 0;
+            return this.hasil ? KOLOM_OCR.filter((k) => this.hasil[k]).length : 0;
         },
     }));
 });

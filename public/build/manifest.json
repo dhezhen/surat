@@ -49,16 +49,17 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-DasGY3ts.css",
+    "file": "assets/app-CR0nToXu.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app--dED2K18.js",
+    "file": "assets/app-Bq7apMfH.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "dynamicImports": [
+      "resources/js/ocr.js",
       "resources/js/ocr.js",
       "node_modules/pdfjs-dist/legacy/build/pdf.mjs",
       "node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs?url",
@@ -66,7 +67,7 @@
     ]
   },
   "resources/js/ocr.js": {
-    "file": "assets/ocr-BJ2UxfEo.js",
+    "file": "assets/ocr-D5l64QxX.js",
     "name": "ocr",
     "src": "resources/js/ocr.js",
     "isDynamicEntry": true,

@@ -4,6 +4,8 @@ use App\Http\Controllers\AiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanAiController;
 use App\Http\Controllers\PengaturanAplikasiController;
+use App\Http\Controllers\PengaturanEmailController;
+use App\Http\Controllers\PeranController;
 use App\Http\Controllers\PengaturanSuratController;
 use App\Http\Controllers\EksporController;
 use App\Http\Controllers\JenisSuratController;
@@ -67,6 +69,12 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::put('pengaturan/aplikasi', [PengaturanAplikasiController::class, 'update'])->name('pengaturan.aplikasi.update');
         Route::post('pengaturan/aplikasi/logo', [PengaturanAplikasiController::class, 'simpanLogo'])->name('pengaturan.aplikasi.logo');
         Route::delete('pengaturan/aplikasi/logo', [PengaturanAplikasiController::class, 'hapusLogo'])->name('pengaturan.aplikasi.logo.hapus');
+        Route::put('pengaturan/aplikasi/email', [PengaturanEmailController::class, 'update'])->name('pengaturan.aplikasi.email');
+        Route::post('pengaturan/aplikasi/email/uji', [PengaturanEmailController::class, 'uji'])->middleware('throttle:6,1')->name('pengaturan.aplikasi.email.uji');
+        Route::post('pengaturan/aplikasi/peran', [PeranController::class, 'store'])->name('pengaturan.aplikasi.peran.store');
+        Route::put('pengaturan/aplikasi/peran/{peran}', [PeranController::class, 'update'])->name('pengaturan.aplikasi.peran.update')->whereNumber('peran');
+        Route::put('pengaturan/aplikasi/peran-bawaan/{kode}', [PeranController::class, 'ubahBawaan'])->name('pengaturan.aplikasi.peran.bawaan')->whereIn('kode', array_keys(\App\Models\User::PERAN));
+        Route::delete('pengaturan/aplikasi/peran/{peran}',[PeranController::class, 'destroy'])->name('pengaturan.aplikasi.peran.destroy')->whereNumber('peran');
         Route::post('pengaturan/surat/kop', [PengaturanSuratController::class, 'simpanKop'])->name('pengaturan.surat.kop');
         Route::delete('pengaturan/surat/kop', [PengaturanSuratController::class, 'hapusKop'])->name('pengaturan.surat.kop.hapus');
         Route::post('pengaturan/surat/tanda-tangan/{pengguna}', [PengaturanSuratController::class, 'simpanTandaTangan'])->name('pengaturan.surat.ttd')->whereNumber('pengguna');
@@ -90,6 +98,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::post('surat-keluar/{surat}/ajukan', [SuratKeluarController::class, 'ajukan'])->name('surat-keluar.ajukan')->whereNumber('surat');
 
         Route::get('surat-masuk/buat', [SuratMasukController::class, 'create'])->name('surat-masuk.create');
+        Route::get('surat-masuk/pindai', [SuratMasukController::class, 'pindai'])->name('surat-masuk.pindai');
         Route::post('surat-masuk', [SuratMasukController::class, 'store'])->name('surat-masuk.store');
         Route::get('surat-masuk/{surat}/ubah', [SuratMasukController::class, 'edit'])->name('surat-masuk.edit')->whereNumber('surat');
         Route::put('surat-masuk/{surat}', [SuratMasukController::class, 'update'])->name('surat-masuk.update')->whereNumber('surat');

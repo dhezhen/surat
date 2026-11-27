@@ -32,14 +32,17 @@
         <div>
             <x-input-label for="role" value="Peran" />
             <select id="role" name="role" class="mt-1 block w-full rounded-md border-slate-300 text-sm" @disabled($diriSendiri)>
-                @foreach (\App\Models\User::PERAN as $nilai => $nama)
-                    <option value="{{ $nilai }}" @selected(old('role', $pengguna->role) === $nilai)>{{ $nama }}</option>
+                @foreach (\App\Models\User::pilihanPeran() as $nilai => $nama)
+                    <option value="{{ $nilai }}" @selected(old('role', $pengguna->kunciPeran()) === $nilai)>{{ $nama }}</option>
                 @endforeach
             </select>
             @if ($diriSendiri)
-                <input type="hidden" name="role" value="{{ $pengguna->role }}">
+                <input type="hidden" name="role" value="{{ $pengguna->kunciPeran() }}">
                 <p class="mt-1 text-xs text-slate-600">Peran akun Anda sendiri tidak dapat diubah.</p>
+            @else
+                <p class="mt-1 text-xs text-slate-600">Peran tambahan dikelola di <a href="{{ route('pengaturan.aplikasi') }}#judul-peran" class="underline">Pengaturan Aplikasi</a>.</p>
             @endif
+            <x-input-error :messages="$errors->get('role')" class="mt-1" />
         </div>
 
         <div>

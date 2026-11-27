@@ -3,6 +3,7 @@ import './tema';
 
 import Alpine from 'alpinejs';
 import './editor';
+import './pindai';
 import './surat-masuk';
 import './pratinjau-pdf';
 import { imporTabel } from './tabel-impor';

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Peran;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class PenggunaController extends Controller
         $urutan = [User::ROLE_SUPER_ADMIN => 0, User::ROLE_KAPRODI => 1, User::ROLE_STAFF => 2];
 
         return view('pengguna.index', [
-            'penggunas' => User::orderBy('name')->get()->sortBy(fn ($u) => $urutan[$u->role] ?? 9)->values(),
+            'penggunas' => User::with('peran')->orderBy('name')->get()->sortBy(fn ($u) => $urutan[$u->role] ?? 9)->values(),
         ]);
     }
 
@@ -47,6 +48,7 @@ class PenggunaController extends Controller
         if ($pengguna->is($request->user())) {
             // Mengubah peran atau menonaktifkan diri sendiri bisa mengunci Super Admin dari sistem.
             $data['role'] = $pengguna->role;
+            $data['peran_id'] = $pengguna->peran_id;
             $data['is_active'] = true;
         }
 
@@ -98,7 +100,7 @@ class PenggunaController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($pengguna)],
             'jabatan' => ['required', 'string', 'max:255'],
             'nidn' => ['nullable', 'string', 'max:30'],
-            'role' => ['required', Rule::in(array_keys(User::PERAN))],
+            'role' => ['required', Rule::in(array_keys(User::pilihanPeran()))],
             'password' => [$pengguna ? 'nullable' : 'required', 'confirmed', Password::min(8)],
         ], [
             'email.unique' => 'Email ini sudah dipakai pengguna lain.',
@@ -108,6 +110,15 @@ class PenggunaController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
+
+        // Peran tambahan disimpan sebagai peran_id, sedangkan kolom role memuat hak akses bawaannya.
+        if (str_starts_with($data['role'], 'peran:')) {
+            $peran = Peran::findOrFail((int) substr($data['role'], 6));
+            $data['role'] = $peran->hak_akses;
+            $data['peran_id'] = $peran->id;
+        } else {
+            $data['peran_id'] = null;
+        }
 
         return $data;
     }

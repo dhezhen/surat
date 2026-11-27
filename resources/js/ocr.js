@@ -79,6 +79,14 @@ async function ocr(sumber, basis, lapor) {
     }
 }
 
+/** Membaca foto halaman hasil kamera (halaman pertama dan terakhir saja, seperti PDF). */
+export async function bacaGambar(gambar, basis, lapor = () => {}) {
+    const target = halamanTarget(gambar.length).map((n) => gambar[n - 1]);
+    const teks = await ocr(target, basis, lapor);
+
+    return { teks: teks.trim(), metode: 'OCR', hasil: ekstrakSurat(teks) };
+}
+
 /**
  * Membaca berkas scan (PDF/JPG/PNG) di browser dan menebak metadata surat masuk.
  * Berkas tidak meninggalkan komputer: mesin OCR dan data bahasa dilayani dari server sendiri.
