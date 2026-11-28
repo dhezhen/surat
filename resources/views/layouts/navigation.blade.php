@@ -84,6 +84,10 @@
         @if ($user->isSuperAdmin())
             <div>
                 <div class="px-3 pb-1.5 font-serif text-sm text-slate-600">Administrasi</div>
+                <x-side-link :href="route('arsip.index')" :active="request()->routeIs('arsip.*')">
+                    <x-slot name="icon"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></x-slot>
+                    Arsip Surat
+                </x-side-link>
                 <x-side-link :href="route('pengguna.index')" :active="request()->routeIs('pengguna.*')">
                     <x-slot name="icon"><circle cx="9" cy="8.5" r="3"/><path d="M3 19a6 6 0 0 1 12 0M16 6.5a3 3 0 0 1 0 5.5M18 19a6 6 0 0 0-2.5-4.9"/></x-slot>
                     Manajemen Pengguna

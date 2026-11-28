@@ -65,6 +65,10 @@ class SuratKeluarController extends Controller
         $this->pastikanBisaDilihat($request, $surat);
         $surat->load(['jenisSurat', 'pembuat', 'penyetuju']);
 
+        if ($surat->isManual()) {
+            return view('arsip.show', compact('surat'));
+        }
+
         return view('surat-keluar.show', ['surat' => $surat] + SuratRenderer::kertas($surat));
     }
 

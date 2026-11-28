@@ -6,7 +6,13 @@
     @if ($surat)
         <div class="text-center">
             <span class="inline-flex items-center rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-300">DOKUMEN SAH &amp; TERVERIFIKASI</span>
-            <p class="mt-3 text-sm text-slate-600">Surat ini tercatat resmi dan diterbitkan melalui sistem persuratan {{ \App\Support\Identitas::ambil('nama_unit') }}.</p>
+            <p class="mt-3 text-sm text-slate-600">
+                @if ($surat->isManual())
+                    Surat ini tercatat resmi dalam arsip persuratan {{ \App\Support\Identitas::ambil('nama_unit') }}.
+                @else
+                    Surat ini tercatat resmi dan diterbitkan melalui sistem persuratan {{ \App\Support\Identitas::ambil('nama_unit') }}.
+                @endif
+            </p>
         </div>
         <dl class="mt-5 space-y-3 text-sm">
             <div><dt class="text-slate-500">Nomor surat</dt><dd class="font-mono">{{ $surat->nomor_surat_resmi }}</dd></div>
@@ -24,7 +30,7 @@
             <h2 id="judul-dokumen" class="font-semibold text-slate-900">Dokumen surat</h2>
             <p class="mt-1 text-sm text-slate-600">
                 Cocokkan isi surat yang Anda terima dengan dokumen di bawah ini.
-                @if ($surat->metodeTtd($surat->penyetuju) === \App\Models\SuratKeluar::TTD_BASAH)
+                @if (! $surat->isManual() && $surat->metodeTtd($surat->penyetuju) === \App\Models\SuratKeluar::TTD_BASAH)
                     Salinan dari sistem tidak memuat tanda tangan basah dan cap.
                 @endif
             </p>

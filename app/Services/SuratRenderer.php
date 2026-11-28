@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SuratRenderer
@@ -35,8 +36,12 @@ class SuratRenderer
     }
 
     /** PDF surat terbit. Salinan untuk halaman publik diberi watermark agar tidak dipakai sebagai surat asli. */
-    public static function pdf(SuratKeluar $surat, bool $unduh, bool $salinan = false): Response
+    public static function pdf(SuratKeluar $surat, bool $unduh, bool $salinan = false): SymfonyResponse
     {
+        if ($surat->isManual()) {
+            return self::berkasManual($surat, $unduh);
+        }
+
         $surat->loadMissing(['jenisSurat', 'penyetuju']);
         $kertas = self::kertas($surat);
         if ($salinan && $kertas['ttd']) {
@@ -46,6 +51,18 @@ class SuratRenderer
         $nama = ($salinan ? 'Salinan-' : 'Surat-').str_replace(['/', '\\'], '-', $surat->nomor_surat_resmi).'.pdf';
 
         return $unduh ? $pdf->download($nama) : $pdf->stream($nama);
+    }
+
+    /** Berkas arsip manual adalah hasil pindai surat asli, jadi diberikan apa adanya tanpa cap salinan. */
+    private static function berkasManual(SuratKeluar $surat, bool $unduh): SymfonyResponse
+    {
+        $disk = Storage::disk('local');
+        abort_unless($surat->berkas_path && $disk->exists($surat->berkas_path), 404, 'Berkas arsip tidak ditemukan.');
+        $nama = 'Surat-'.str_replace(['/', '\\'], '-', $surat->nomor_surat_resmi).'.pdf';
+
+        return $unduh
+            ? $disk->download($surat->berkas_path, $nama)
+            : $disk->response($surat->berkas_path, $nama, ['Content-Type' => 'application/pdf']);
     }
 
     /**

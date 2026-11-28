@@ -16,6 +16,9 @@ class SuratKeluar extends Model
     public const REVISI = 'revisi';
     public const TERBIT = 'terbit';
 
+    public const SUMBER_SISTEM = 'sistem';
+    public const SUMBER_MANUAL = 'manual';
+
     public const TTD_BASAH = 'basah';
     public const TTD_QR = 'qr';
     public const TTD_DIGITAL = 'digital';
@@ -109,6 +112,17 @@ class SuratKeluar extends Model
     public function isTerbit(): bool
     {
         return $this->status === self::TERBIT;
+    }
+
+    /** Arsip manual tidak punya isi yang dirender sistem; dokumennya adalah berkas PDF hasil pindai. */
+    public function isManual(): bool
+    {
+        return $this->sumber === self::SUMBER_MANUAL;
+    }
+
+    public function dihapusOleh()
+    {
+        return $this->belongsTo(User::class, 'dihapus_oleh_id');
     }
 
     /** Metode yang dipilih; bila belum dipilih, ditentukan dari ketersediaan gambar tanda tangan. */

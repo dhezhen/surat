@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\ArsipSuratController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanAiController;
 use App\Http\Controllers\PengaturanAplikasiController;
@@ -79,6 +80,13 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::delete('pengaturan/surat/kop', [PengaturanSuratController::class, 'hapusKop'])->name('pengaturan.surat.kop.hapus');
         Route::post('pengaturan/surat/tanda-tangan/{pengguna}', [PengaturanSuratController::class, 'simpanTandaTangan'])->name('pengaturan.surat.ttd')->whereNumber('pengguna');
         Route::delete('pengaturan/surat/tanda-tangan/{pengguna}', [PengaturanSuratController::class, 'hapusTandaTangan'])->name('pengaturan.surat.ttd.hapus')->whereNumber('pengguna');
+        Route::get('arsip', [ArsipSuratController::class, 'index'])->name('arsip.index');
+        Route::get('arsip/tambah', [ArsipSuratController::class, 'create'])->name('arsip.create');
+        Route::post('arsip', [ArsipSuratController::class, 'store'])->name('arsip.store');
+        Route::get('arsip/{arsip}/ubah', [ArsipSuratController::class, 'edit'])->name('arsip.edit')->whereNumber('arsip');
+        Route::put('arsip/{arsip}', [ArsipSuratController::class, 'update'])->name('arsip.update')->whereNumber('arsip');
+        Route::delete('arsip/{arsip}', [ArsipSuratController::class, 'destroy'])->name('arsip.destroy')->whereNumber('arsip');
+        Route::post('arsip/{arsip}/pulihkan', [ArsipSuratController::class, 'pulihkan'])->name('arsip.pulihkan')->withTrashed()->whereNumber('arsip');
         Route::get('surat-keluar-terhapus', [SuratKeluarController::class, 'terhapus'])->name('surat-keluar.terhapus');
         Route::post('surat-keluar/{surat}/pulihkan', [SuratKeluarController::class, 'pulihkan'])->name('surat-keluar.pulihkan')->withTrashed()->whereNumber('surat');
         Route::resource('pengguna', PenggunaController::class)->except('show')->parameters(['pengguna' => 'pengguna']);
